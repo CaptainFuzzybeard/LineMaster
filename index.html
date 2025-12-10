@@ -1,346 +1,260 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Headline Strengthener — AI</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Headline Strengthener</title>
   <style>
-    :root{
-      --bg-1:#f2f2f2;
-      --panel:#ffffff;
-      --muted:#bdbdbd;
-      --ink:#111;
-      --accent:#000;
-    }
-    html,body{height:100%;}
-    body{
-      margin:0;
+    :root{--bg:#f2f2f2;--card:#fff;--muted:#bfbfbf;--text:#111;--black:#000}
+    *{box-sizing:border-box}
+    body {
       font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: var(--bg-1);
-      color:var(--ink);
-      padding:36px;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      /* optional background image: create 'background.jpg' in same folder or change URL */
-      background-image: url('background.jpg');
-      background-size: cover;
-      background-position: center;
-      background-repeat: no-repeat;
-      background-attachment: fixed;
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(180deg,var(--bg),#e9e9e9);
+      color: var(--text);
     }
-
-    .card{
-      max-width:960px;
+    .container {
+      max-width: 880px;
       margin: auto;
-      background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,250,250,0.96));
-      border-radius:12px;
-      padding:28px;
-      box-shadow:0 10px 30px rgba(0,0,0,0.08);
-      border:1px solid #e4e4e4;
+      background: var(--card);
+      padding: 28px;
+      border-radius: 12px;
+      border: 1px solid #dcdcdc;
+      box-shadow: 0 6px 30px rgba(0,0,0,0.04);
     }
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    h1{font-size:20px;margin:0;color:var(--black)}
+    p.lead{margin:6px 0 0;color:var(--muted);font-size:13px}
 
-    h1{margin:0 0 8px 0; font-size:20px; color:var(--accent);}
-    p.lead{margin:0 0 20px 0; color:#333; font-size:14px;}
-
+    .controls{display:flex;gap:12px;margin-top:8px;align-items:center}
     textarea{
-      width:100%;
-      min-height:96px;
-      resize:vertical;
-      padding:12px 14px;
-      border-radius:8px;
-      border:1px solid #cfcfcf;
-      background:#fafafa;
-      font-size:15px;
-      color:var(--ink);
+      width:100%;min-height:92px;padding:12px;border-radius:8px;border:1px solid #d0d0d0;background:#fbfbfb;font-size:15px;color:var(--text);resize:vertical
     }
 
-    .controls{display:flex; gap:12px; margin-top:12px; align-items:center; flex-wrap:wrap;}
-    button{
-      background:var(--accent);
-      color:#fff;
-      border:none;
-      padding:10px 14px;
-      border-radius:8px;
-      cursor:pointer;
-      font-size:14px;
-    }
-    button.secondary{
-      background:#222;
-      opacity:0.9;
-    }
-    .muted{color:var(--muted); font-size:13px;}
+    .row{display:flex;gap:16px}
+    .col{flex:1}
+    .sidebar{width:320px}
 
-    .layout{
-      display:grid;
-      grid-template-columns: 1fr 360px;
-      gap:18px;
-      margin-top:18px;
+    .btn{display:inline-block;padding:10px 14px;border-radius:8px;border:none;cursor:pointer;font-weight:600}
+    .btn-primary{background:#000;color:#fff}
+    .btn-ghost{background:transparent;border:1px solid #ccc;color:var(--text)}
+
+    .result{
+      margin-top:18px;padding:16px;border-radius:8px;background:#f7f7f7;border:1px solid #e0e0e0;white-space:pre-wrap;line-height:1.45;color:var(--text)
     }
 
-    .panel{
-      background:var(--panel);
-      border-radius:10px;
-      padding:14px;
-      border:1px solid #e8e8e8;
-      min-height:120px;
+    .history{margin-top:12px;max-height:360px;overflow:auto;padding-right:6px}
+    .hist-item{padding:10px;border-radius:8px;border:1px solid #eee;margin-bottom:10px;background:white}
+    .muted{color:var(--muted);font-size:13px}
+
+    .small{font-size:13px}
+
+    /* background image helper: use body[data-bg] to show image behind page */
+    body[data-bg]::before{
+      content:"";position:fixed;inset:0;z-index:-1;opacity:.18;background-size:cover;background-position:center;filter:grayscale(.05) contrast(.9);
     }
 
-    #result{white-space:pre-wrap; font-size:14px; line-height:1.55;}
-
-    #historyBox{max-height:420px; overflow:auto; font-size:13px;}
-    .hist-item{padding:10px;border-bottom:1px dashed #eee;}
-    .hist-item strong{display:block;margin-bottom:6px;}
-
-    .debug{margin-top:12px; font-family:monospace; font-size:12px; color:#444; background:#fafafa; padding:8px; border-radius:6px; border:1px solid #eee; overflow:auto; max-height:180px;}
-    .small{font-size:12px; color:#666;}
-    label.switch{display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-size:13px;}
-
-    @media (max-width:900px){
-      .layout{grid-template-columns:1fr;}
-    }
+    @media (max-width:880px){.row{flex-direction:column}.sidebar{width:auto}}
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>Headline Strengthener — AI</h1>
-    <p class="lead">Paste a headline and get a score, line-by-line feedback, and 3 alternative rewrites. Uses sensory adjective, verb, noun, contrast/tension, rhythm, and emotional payoff as evaluation criteria.</p>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Headline Strengthener</h1>
+        <p class="lead">Paste a headline and get instant AI feedback — sensory adjective, verb, noun, contrast, rhythm, emotional payoff, and a score.</p>
+      </div>
+      <div class="small muted">Black · Light-grey theme</div>
+    </header>
 
-    <textarea id="headlineInput" placeholder="Type your headline here..."></textarea>
+    <div class="row">
+      <div class="col">
+        <label class="small muted">Your headline</label>
+        <textarea id="headlineInput" placeholder="Type your headline here — e.g. 'Breezy Linen That Breathes Like Summer'"> </textarea>
 
-    <div class="controls">
-      <button id="analyzeBtn">Analyze</button>
-      <button id="rewriteBtn" class="secondary">Rewrite (3 options)</button>
-      <label class="switch"><input type="checkbox" id="showRaw" /> <span class="muted">Show raw API JSON</span></label>
-      <div style="flex:1"></div>
-      <div class="small">Model: <strong>gpt-4o-mini</strong> · Temp: <strong id="tempLabel">0.7</strong></div>
-    </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="analyzeHeadline('analysis')">Analyze</button>
+          <button class="btn btn-ghost" onclick="analyzeHeadline('rewrite')">Rewrite Stronger</button>
+          <button class="btn" onclick="clearAll()">Clear</button>
+        </div>
 
-    <div class="layout">
-      <div class="panel">
-        <h2 style="margin:0 0 8px 0; font-size:15px;">Analysis</h2>
-        <div id="result" aria-live="polite">Enter a headline and click Analyze.</div>
-
-        <div id="debug" class="debug" style="display:none;"></div>
+        <div id="result" class="result" style="display:none"></div>
       </div>
 
-      <div class="panel">
-        <h2 style="margin:0 0 8px 0; font-size:15px;">History</h2>
-        <div id="historyBox"><div class="muted">No history yet.</div></div>
-      </div>
+      <aside class="sidebar">
+        <div class="muted small">History</div>
+        <div id="historyBox" class="history"></div>
+
+        <div style="margin-top:12px" class="muted small">Settings</div>
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <label class="small muted">Background image</label>
+          <input id="bgInput" type="file" accept="image/*" onchange="loadBackground(event)" />
+        </div>
+
+        <p class="muted small" style="margin-top:10px">Important: Do NOT put your OpenAI API key in client-side code for production. See notes below for a safe proxy example.</p>
+      </aside>
     </div>
+
+    <footer style="margin-top:18px;color:var(--muted);font-size:13px">
+      <strong>How it works:</strong> the page sends the headline to your configured AI endpoint and renders the model's suggestions. For local testing you can paste your API key into the local dev proxy (example included). In production, run a server-side proxy to keep the key secret.
+    </footer>
+
+    <section style="margin-top:14px">
+      <details>
+        <summary class="small">Developer notes & safe proxy (click to expand)</summary>
+        <div class="muted small" style="margin-top:8px">
+          <p><strong>Client-side behavior</strong>: This page calls a configured endpoint (see `AI_ENDPOINT` below). It does not hardcode an API key. If you put the OpenAI key directly in the page, browsers will reuse the same key, but more importantly you'll expose the key to anyone who views the site — don't do that in production.</p>
+
+          <p><strong>Why you saw the same response earlier</strong>: Most common causes are (1) the page was calling a cached/stubbed endpoint that returned a static string; (2) the request body didn't include the user's headline properly; or (3) the response parsing used a constant fallback. This version constructs explicit messages with the headline inserted and renders the returned text directly.</p>
+
+          <p><strong>Minimal Node.js proxy (example)</strong> — create a small server so your frontend calls <code>/ai</code> and the server forwards to OpenAI with the key kept on the server:</p>
+
+<pre style="background:#f3f3f3;padding:10px;border-radius:6px;overflow:auto;font-size:13px">// server.js
+const express = require('express');
+const fetch = require('node-fetch');
+const app = express();
+app.use(express.json());
+const OPENAI_KEY = process.env.OPENAI_KEY;
+app.post('/ai', async (req, res) => {
+  try {
+    const payload = req.body; // forward body as-is
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${OPENAI_KEY}` },
+      body: JSON.stringify(payload)
+    });
+    const json = await r.json();
+    res.status(r.status).json(json);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.listen(3000);
+</pre>
+
+<p class="muted small">Then set <code>AI_ENDPOINT</code> in the client JS to <code>http://localhost:3000/ai</code> while testing.</p>
+        </div>
+      </details>
+    </section>
   </div>
 
   <script>
-    // -------------------------
-    // CONFIGURE:
-    // If you are testing locally you can put your key here (NOT recommended for production).
-    // Better: set up a server endpoint that proxies requests and hides the key.
-    // Example server endpoint (recommended): POST /api/ai/headline -> server calls OpenAI with SECRET_KEY
-    // For quick local tests only, replace below value. Do NOT commit API keys to public repos.
-    // -------------------------
-    const CLIENT_SIDE_OPENAI_KEY = "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"; // <--- Replace for quick tests OR call your own server below.
-    const USE_SERVER_PROXY = false; // set true if you want to call your server endpoint instead of directly calling OpenAI
-    const SERVER_PROXY_URL = "/api/ai/headline"; // change to your proxy route if USE_SERVER_PROXY=true
+    // --- CONFIG ---
+    // If you are testing locally with a proxy server (recommended), set AI_ENDPOINT to your server.
+    // Example: const AI_ENDPOINT = 'http://localhost:3000/ai';
+    // If you absolutely must call OpenAI directly from the browser (not recommended), you can set
+    // AI_ENDPOINT to 'https://api.openai.com/v1/chat/completions' and then include an Authorization header
+    // with a key — but again: this exposes the key to anyone who inspects the site.
+    const AI_ENDPOINT = '';
 
-    // -------------------------
-    // UI
-    // -------------------------
-    const analyzeBtn = document.getElementById("analyzeBtn");
-    const rewriteBtn = document.getElementById("rewriteBtn");
-    const headlineInput = document.getElementById("headlineInput");
-    const resultEl = document.getElementById("result");
-    const historyBox = document.getElementById("historyBox");
-    const debugEl = document.getElementById("debug");
-    const showRawCheckbox = document.getElementById("showRaw");
-    const tempLabel = document.getElementById("tempLabel");
+    // --- helper functions ---
+    const history = [];
+    const historyBox = () => document.getElementById('historyBox');
 
-    let history = [];
+    function clearAll(){
+      document.getElementById('headlineInput').value = '';
+      document.getElementById('result').style.display='none';
+    }
 
-    analyzeBtn.addEventListener("click", () => analyzeHeadline("analysis"));
-    rewriteBtn.addEventListener("click", () => analyzeHeadline("rewrite"));
+    function loadBackground(evt){
+      const file = evt.target.files && evt.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const url = e.target.result;
+        // apply as low-opacity fixed background
+        document.body.setAttribute('data-bg','true');
+        document.body.style.setProperty('--bg-image', `url(${url})`);
+        document.body.style.backgroundImage = `url(${url})`;
+        // also set pseudo-element via inline style
+        const styleEl = document.getElementById('bgStyle') || document.createElement('style');
+        styleEl.id = 'bgStyle';
+        styleEl.textContent = `body::before{background-image: url(${url});}`;
+        document.head.appendChild(styleEl);
+      };
+      reader.readAsDataURL(file);
+    }
 
-    // -------------------------
-    // Helper: local fallback analysis (fast feedback if API not reachable)
-    // -------------------------
-    function localQuickAnalysis(headline){
-      const sensory = ["soft","crisp","breezy","warm","cool","raw","smooth","airy","textured","silky","earthy","tactile"];
-      const verbs = ["feel","wrap","reveal","breathe","define","meet","transform","turn","weave","hold"];
-      const nouns = ["linen","fabric","summer","comfort","touch","skin","weave","loom","texture","thread"];
-
-      const text = headline.toLowerCase();
-      const hasSensory = sensory.some(s => text.includes(s));
-      const hasVerb = verbs.some(v => text.includes(v));
-      const hasNoun = nouns.some(n => text.includes(n));
-      const words = headline.trim().split(/\s+/).filter(Boolean).length;
-
-      const score = Math.round(
-        (hasSensory*30 + hasVerb*25 + hasNoun*25 + (words<=7?20: Math.max(0,20 - (words-7)*3)))
-      );
-
-      let suggestions = [];
-      if(!hasSensory) suggestions.push("Add a sensory adjective (e.g. 'breezy', 'silky', 'crisp') to make it more vivid.");
-      if(!hasVerb) suggestions.push("Include a strong verb to create action or movement.");
-      if(!hasNoun) suggestions.push("Add a concrete noun (linen, weave, summer) to anchor the idea.");
-      if(words>12) suggestions.push("Tighten the headline — shorter lines read stronger.");
+    // Compose the messages for the model clearly so each call is unique per headline.
+    function buildPayload(mode, headline){
+      const userInstruction = mode === 'rewrite' ?
+        `Rewrite this headline to be stronger, using sensory language, a vivid verb, a concrete noun, contrast, rhythm, and a clear emotional payoff. Keep it short (<=10 words) and give 3 variants.` :
+        `Analyse this headline for sensory adjective, verb, noun, contrast/tension, rhythm, and emotional payoff. Give a numeric score (0-100), a short explanation for each criterion, and 3 suggested tweaks.`;
 
       return {
-        score,
-        notes: [
-          `Sensory present: ${hasSensory ? "yes" : "no"}`,
-          `Strong verb present: ${hasVerb ? "yes" : "no"}`,
-          `Concrete noun present: ${hasNoun ? "yes" : "no"}`,
-          `Rhythm / length (words): ${words}`
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: 'You are an expert creative director. Be concise, actionable, and kind.' },
+          { role: 'user', content: `${userInstruction}\n\nHeadline: "${headline.replace(/"/g,'\"')}"` }
         ],
-        suggestions,
-        rewrites: [
-          `${headline} — trimmed & sensory`,
-          `Silky ${headline}`,
-          `When linen ${headline}`
-        ]
+        max_tokens: 400,
+        temperature: 0.7
       };
     }
 
-    // -------------------------
-    // Main function: calls OpenAI (or proxy) and renders result
-    // -------------------------
-    async function analyzeHeadline(mode = "analysis"){
-      const headline = headlineInput.value.trim();
-      if(!headline){
-        resultEl.textContent = "Please enter a headline to analyze.";
-        return;
-      }
+    async function analyzeHeadline(mode = 'analysis'){
+      const input = document.getElementById('headlineInput');
+      const result = document.getElementById('result');
+      const headline = input.value.trim();
+      if(!headline){ result.style.display='block'; result.textContent='Please enter a headline to analyse.'; return; }
 
-      resultEl.textContent = "Thinking...";
+      result.style.display='block'; result.textContent='Thinking...';
 
-      // Construct a deterministic, explicit prompt so model MUST use the headline string
-      const systemPrompt = `
-You are an expert creative director and copywriter. When given a single headline you must:
-1) Score the headline from 0-100.
-2) Provide 6 short bullet observations: sensory adjective present (yes/no), verb present (yes/no), concrete noun present (yes/no), contrast/tension (yes/no), rhythm/length comment, emotional payoff present (yes/no).
-3) Provide 4 short, concrete suggestions to improve the headline.
-4) Provide 3 alternative rewrites (short, punchy, varied tones).
-5) Keep output clear and machine-parsable: start with "SCORE: <number>" and label sections "OBSERVATIONS:", "SUGGESTIONS:", "REWRITES:".
-Do not add unrelated commentary. Always reference the exact headline given.
-`;
+      // Build payload
+      const payload = buildPayload(mode, headline);
 
-      const userInstruction = mode === "rewrite"
-        ? `Rewrite this headline stronger (3 variants). Headline: "${headline}"`
-        : `Analyze this headline and follow the format above. Headline: "${headline}"`;
-
-      try {
-        let apiResponseJson = null;
-
-        if(USE_SERVER_PROXY){
-          // Call user's server proxy endpoint (recommended for production)
-          const proxyResp = await fetch(SERVER_PROXY_URL, {
-            method:"POST",
-            headers: {"Content-Type":"application/json"},
-            body: JSON.stringify({ prompt: userInstruction, system: systemPrompt, mode, headline })
-          });
-          apiResponseJson = await proxyResp.json();
-        } else {
-          // Direct client-side call to OpenAI (for quick dev/test only)
-          if(!CLIENT_SIDE_OPENAI_KEY || CLIENT_SIDE_OPENAI_KEY === "YOUR_API_KEY_HERE"){
-            // No key provided: fallback to local quick analysis (helpful during development)
-            const fallback = localQuickAnalysis(headline);
-            renderAnalysisFromObject(fallback, headline);
-            debugEl.style.display = "block";
-            debugEl.textContent = "No client API key provided. Showing local quick analysis fallback.";
-            return;
-          }
-
-          const payload = {
-            model: "gpt-4o-mini",
-            messages: [
-              { role: "system", content: systemPrompt },
-              { role: "user", content: userInstruction }
-            ],
-            temperature: 0.7,
-            max_tokens: 520,
-            n: 1
-          };
-
-          const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-            method:"POST",
-            headers:{
-              "Content-Type":"application/json",
-              "Authorization":"Bearer " + CLIENT_SIDE_OPENAI_KEY
-            },
-            body: JSON.stringify(payload)
-          });
-
-          apiResponseJson = await resp.json();
-        }
-
-        // Robust parsing of response
-        const rawText =
-          apiResponseJson?.choices?.[0]?.message?.content ||
-          apiResponseJson?.choices?.[0]?.text ||
-          apiResponseJson?.text ||
-          (typeof apiResponseJson === "string" ? apiResponseJson : null);
-
-        if(!rawText){
-          resultEl.textContent = "AI returned empty response. See debug for raw JSON.";
-          debugEl.style.display = "block";
-          debugEl.textContent = JSON.stringify(apiResponseJson,null,2);
+      try{
+        // Validate AI_ENDPOINT
+        if(!AI_ENDPOINT){
+          result.innerHTML = "<strong>Client not configured:</strong> set <code>AI_ENDPOINT</code> in the page to your proxy (e.g. http://localhost:3000/ai).<br><br>To test quickly you can temporarily paste your OpenAI key and endpoint into the proxy server (server-side) as shown in the developer notes.";
           return;
         }
 
-        // Show raw JSON if user opted in
-        if(showRawCheckbox.checked){
-          debugEl.style.display = "block";
-          debugEl.textContent = JSON.stringify(apiResponseJson,null,2);
-        } else {
-          debugEl.style.display = "none";
+        const fetchOptions = {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json' },
+          body: JSON.stringify(payload)
+        };
+
+        // If you're deliberately calling the OpenAI REST endpoint directly (again: not recommended),
+        // include the Authorization header here. Example commented out:
+        // fetchOptions.headers['Authorization'] = 'Bearer YOUR_OPENAI_KEY';
+
+        const resp = await fetch(AI_ENDPOINT, fetchOptions);
+        if(!resp.ok){
+          const text = await resp.text();
+          throw new Error(`AI endpoint error: ${resp.status} ${text}`);
         }
 
-        // Render the returned text as-is (we required machine-parsable structure in prompt)
-        resultEl.textContent = rawText;
+        const data = await resp.json();
 
-        // Save history
-        history.unshift({ headline, response: rawText, time: (new Date()).toLocaleString() });
+        // Chat completions reply may differ by API; try common shapes safely
+        let aiText = '';
+        if(data.choices && data.choices[0] && data.choices[0].message){ aiText = data.choices[0].message.content; }
+        else if(data.output && Array.isArray(data.output) && data.output[0] && data.output[0].content){
+          // newer responses API shape
+          const c = data.output[0].content.find(x=>x.type==='output_text');
+          aiText = c ? c.text : JSON.stringify(data.output[0].content);
+        } else if(typeof data === 'string') aiText = data;
+        else aiText = JSON.stringify(data, null, 2);
+
+        result.textContent = aiText;
+
+        // save to history
+        history.unshift({headline, mode, time: new Date().toISOString(), aiText});
         renderHistory();
 
-      } catch (err){
+      }catch(err){
         console.error(err);
-        // If network / API errors, show local quick analysis as graceful fallback
-        const fallback = localQuickAnalysis(headline);
-        resultEl.textContent = "Error calling AI — showing local quick analysis instead.\n\n" + formatLocalResult(fallback);
-        debugEl.style.display = "block";
-        debugEl.textContent = "Error object:\n" + (err && err.message ? err.message : String(err));
+        result.textContent = 'Error: ' + (err.message || err);
       }
-    }
-
-    function formatLocalResult(obj){
-      return `SCORE: ${obj.score}\n\nOBSERVATIONS:\n- ${obj.notes.join("\n- ")}\n\nSUGGESTIONS:\n- ${obj.suggestions.join("\n- ")}\n\nREWRITES:\n- ${obj.rewrites.join("\n- ")}`;
-    }
-
-    function renderAnalysisFromObject(obj, headline){
-      resultEl.textContent = formatLocalResult(obj);
-      history.unshift({ headline, response: resultEl.textContent, time: (new Date()).toLocaleString() });
-      renderHistory();
     }
 
     function renderHistory(){
-      if(history.length === 0){
-        historyBox.innerHTML = '<div class="muted">No history yet.</div>';
-        return;
-      }
-      historyBox.innerHTML = history.map(h => {
-        return `<div class="hist-item"><strong>${escapeHtml(h.headline)}</strong><div class="small muted">${h.time}</div><div style="margin-top:8px; font-size:13px;">${escapeHtml(h.response).replace(/\n/g,"<br>")}</div></div>`;
-      }).join("");
+      const hb = historyBox();
+      hb.innerHTML = history.map(h => `<div class='hist-item'><div style='font-weight:600'>${escapeHtml(h.headline)}</div><div class='muted small'>${h.mode} • ${new Date(h.time).toLocaleString()}</div><div style='margin-top:8px;white-space:pre-wrap'>${escapeHtml(h.aiText)}</div></div>`).join('');
     }
 
-    function escapeHtml(s){
-      return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
-
-    // Quick tip: press Ctrl+Enter in textarea to analyze
-    headlineInput.addEventListener("keydown", (e)=> {
-      if(e.key === "Enter" && (e.ctrlKey || e.metaKey)){
-        analyzeHeadline("analysis");
-      }
-    });
+    function escapeHtml(s){ return (s+'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
   </script>
 </body>
 </html>
