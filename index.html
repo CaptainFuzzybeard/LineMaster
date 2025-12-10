@@ -1,127 +1,398 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Headline Strengthener</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Headline Strengthener — AI</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 40px;
-      background-image: url('LineMaster.jpeg');
-      background-size: cover;
-      background-repeat: no-repeat;
-      background-position: center;
-      background-attachment: fixed;
-      color: #111;
+    :root{
+      --bg:#0b0b0b;
+      --panel:#111;
+      --muted:#bfbfbf;
+      --accent:#000;
+      --soft:#f5f5f5;
     }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: #ffffff;
-      padding: 32px;
-      border-radius: 10px;
-      border: 1px solid #ddd;
+    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+    body{
+      background-color:var(--bg);
+      color:var(--soft);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      /* background image will be applied via JS to allow live change */
+      background-size:cover;
+      background-repeat:no-repeat;
+      background-position:center;
+      -webkit-font-smoothing:antialiased;
     }
-    h1 {
-      font-weight: 600;
-      color: #000;
-      margin-bottom: 20px;
+
+    .overlay{
+      position:fixed;inset:0;background:linear-gradient(rgba(11,11,11,0.6), rgba(11,11,11,0.6));pointer-events:none;
     }
-    p {
-      color: #333;
-      margin-bottom: 16px;
+
+    .wrap{
+      width:100%;
+      max-width:980px;
+      z-index:10;
     }
-    textarea {
-      width: 100%;
-      height: 110px;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 6px;
-      border: 1px solid #bbb;
-      background: #fafafa;
-      color: #111;
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.06);
+      padding:26px;
+      border-radius:12px;
+      box-shadow:0 8px 30px rgba(2,2,2,0.6);
+      display:grid;
+      grid-template-columns:1fr 340px;
+      gap:20px;
+      align-items:start;
     }
-    button {
-      margin-top: 16px;
-      padding: 12px 20px;
-      font-size: 15px;
-      background: #000;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+
+    h1{
+      margin:0 0 6px 0;
+      color:var(--soft);
+      font-size:20px;
+      font-weight:700;
+      letter-spacing:0.2px;
     }
-    button:hover {
-      background: #333;
+    p.lead{
+      margin:0 0 12px 0;color:var(--muted);font-size:13px;
     }
-    .result-box {
-      margin-top: 28px;
-      padding: 20px;
-      background: #f7f7f7;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      color: #111;
-      white-space: pre-wrap;
-      line-height: 1.55;
+
+    textarea{
+      width:100%;
+      min-height:120px;
+      padding:12px;
+      background:#0f0f0f;
+      border:1px solid rgba(255,255,255,0.06);
+      color:var(--soft);
+      border-radius:8px;
+      resize:vertical;
+      font-size:15px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      background:#000;color:var(--soft);border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600;
+      box-shadow:0 2px 6px rgba(0,0,0,0.6);
+    }
+    button.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--soft);font-weight:600;}
+    button.ghost{background:transparent;border:none;color:var(--muted);font-weight:600;}
+    button:active{transform:translateY(1px);}
+
+    .result{
+      margin-top:14px;
+      background:rgba(255,255,255,0.02);
+      border-radius:8px;padding:12px;border:1px solid rgba(255,255,255,0.03);
+      color:var(--soft);
+      min-height:120px;
+      white-space:pre-wrap;
+      font-size:14px;
+      line-height:1.55;
+    }
+
+    /* Right column (history + background controls) */
+    .side{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      border-radius:10px;padding:14px;border:1px solid rgba(255,255,255,0.03);
+    }
+    .side h3{margin:0 0 10px 0;font-size:13px;color:var(--soft);}
+    .history{
+      max-height:420px;overflow:auto;padding:8px;border-radius:8px;background:rgba(0,0,0,0.18);border:1px dashed rgba(255,255,255,0.02);
+    }
+    .hist-item{
+      padding:10px;border-radius:8px;margin-bottom:10px;background:rgba(255,255,255,0.015);font-size:13px;color:var(--muted);
+    }
+    .hist-item strong{color:var(--soft);display:block;margin-bottom:6px;font-weight:700;}
+
+    .bg-controls{display:flex;gap:8px;align-items:center;margin-top:12px;}
+    .bg-preview{height:64px;width:64px;border-radius:6px;background:#111;border:1px solid rgba(255,255,255,0.04);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px}
+    .file-input{font-size:13px;color:var(--muted)}
+    .small{font-size:12px;color:var(--muted);margin-top:8px}
+
+    footer{margin-top:14px;color:var(--muted);font-size:12px;}
+    @media (max-width:880px){
+      .card{grid-template-columns:1fr; }
+      .side{order:2}
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Headline Strengthener</h1>
-    <p>Enter your headline below and get instant feedback based on sensory adjectives, verbs, nouns, tension, rhythm, and emotional benefit.</p>
-    
-    <textarea id="headlineInput" placeholder="Type your headline here..."></textarea>
-    <button onclick="analyzeHeadline()">Improve My Headline</button>
+  <div class="overlay" aria-hidden="true"></div>
 
-    <div id="result" class="result-box" style="display:none;"></div>
+  <div class="wrap">
+    <div class="card" role="region" aria-label="Headline Strengthener">
+      <div>
+        <h1>Headline Strengthener</h1>
+        <p class="lead">Paste your headline, then <strong>Analyze</strong> for feedback or ask the AI to <strong>Rewrite</strong> stronger options. Uses sensory depth, verbs, nouns, contrast, rhythm, emotional payoff and clarity.</p>
+
+        <label for="headlineInput" style="display:block;margin-bottom:8px;color:var(--muted);font-size:13px">Your headline</label>
+        <textarea id="headlineInput" placeholder="e.g. 'Breezy Linen for Sunlit Days'"></textarea>
+
+        <div class="controls" style="margin-bottom:6px">
+          <button id="analyzeBtn">Analyze</button>
+          <button id="rewriteBtn" class="secondary">Rewrite (3 options)</button>
+          <button id="clearBtn" class="ghost">Clear</button>
+          <button id="copyBtn" class="ghost" title="Copy the last AI output">Copy Result</button>
+        </div>
+
+        <div id="result" class="result" aria-live="polite">AI results will appear here.</div>
+
+        <footer>Tip: Keep headlines short (3–8 words). Add a sensory adjective, a strong verb, a concrete noun and an emotional payoff.</footer>
+      </div>
+
+      <aside class="side" aria-label="Controls & history">
+        <h3>History</h3>
+        <div id="history" class="history" role="log" aria-live="polite">
+          <div style="color:var(--muted);font-size:13px">No items yet. Your analyses & rewrites will appear here.</div>
+        </div>
+
+        <h3 style="margin-top:14px">Background image</h3>
+        <div style="display:flex;gap:10px;align-items:center">
+          <div id="bgPreview" class="bg-preview">Preview</div>
+          <div style="flex:1">
+            <div class="bg-controls">
+              <input id="bgFile" class="file-input" type="file" accept="image/*">
+              <button id="removeBg" class="secondary">Remove</button>
+            </div>
+            <div class="small">Or paste an image URL below:</div>
+            <input id="bgUrl" type="url" placeholder="https://..." style="width:100%;margin-top:8px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)">
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <button id="applyUrl" class="secondary">Apply URL</button>
+              <button id="useDefault" class="ghost">Use fallback</button>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top:14px">Settings</h3>
+        <div style="display:flex;gap:8px;flex-direction:column;margin-top:6px">
+          <label style="font-size:13px;color:var(--muted)"><input id="showScores" type="checkbox" checked> Show numeric score (0–100)</label>
+          <label style="font-size:13px;color:var(--muted)"><input id="storeLocal" type="checkbox" checked> Save history in local storage</label>
+          <div style="margin-top:8px">
+            <button id="exportJson" class="secondary">Export History (JSON)</button>
+          </div>
+        </div>
+      </aside>
+    </div>
   </div>
 
   <script>
-    function analyzeHeadline() {
-      const headline = document.getElementById("headlineInput").value.trim();
-      const result = document.getElementById("result");
+    // ---------- Config ----------
+    const OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
+    // IMPORTANT: replace YOUR_API_KEY below with your private key or, preferably,
+    // point OPENAI_ENDPOINT to a server-side proxy that holds the key.
+    const OPENAI_KEY_PLACEHOLDER = "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";
 
-      if (!headline) {
-        result.style.display = "block";
-        result.textContent = "Please enter a headline to analyse.";
+    // ---------- Elements ----------
+    const headlineInput = document.getElementById("headlineInput");
+    const analyzeBtn = document.getElementById("analyzeBtn");
+    const rewriteBtn = document.getElementById("rewriteBtn");
+    const resultEl = document.getElementById("result");
+    const historyEl = document.getElementById("history");
+    const clearBtn = document.getElementById("clearBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const bgFile = document.getElementById("bgFile");
+    const bgPreview = document.getElementById("bgPreview");
+    const removeBg = document.getElementById("removeBg");
+    const bgUrl = document.getElementById("bgUrl");
+    const applyUrl = document.getElementById("applyUrl");
+    const useDefault = document.getElementById("useDefault");
+    const showScores = document.getElementById("showScores");
+    const storeLocal = document.getElementById("storeLocal");
+    const exportJson = document.getElementById("exportJson");
+
+    // ---------- State ----------
+    let history = [];
+    const FALLBACK_BG = ""; // leave empty or set to a fallback image URL
+
+    // load from local storage if configured
+    if (localStorage.getItem("headline_history")) {
+      try {
+        const loaded = JSON.parse(localStorage.getItem("headline_history"));
+        if (Array.isArray(loaded)) { history = loaded; renderHistory(); }
+      } catch(e){/* ignore */ }
+    }
+
+    // ---------- Helpers ----------
+    function setResult(text){ resultEl.textContent = text; }
+    function pushHistory(item){
+      history.unshift(item);
+      if (storeLocal.checked) {
+        try { localStorage.setItem("headline_history", JSON.stringify(history)); } catch(e){}
+      }
+      renderHistory();
+    }
+    function renderHistory(){
+      if (history.length === 0) {
+        historyEl.innerHTML = '<div style="color:var(--muted);font-size:13px">No items yet. Your analyses & rewrites will appear here.</div>';
         return;
       }
-
-      let feedback = "";
-
-      // Sensory adjectives
-      const sensoryWords = ["cool", "warm", "soft", "crisp", "breezy", "raw", "smooth", "airy"]; 
-      const hasSensory = sensoryWords.some(w => headline.toLowerCase().includes(w));
-      feedback += hasSensory ? "• Contains sensory depth. Good.\n" : "• Add a sensory adjective to create vividness.\n";
-
-      // Verb presence
-      const verbPattern = /(creates|gives|brings|meets|finds|feels|moves|shapes|defines|reveals|wraps|breathes)/i;
-      feedback += verbPattern.test(headline) ? "• Strong verb detected.\n" : "• Add a vivid verb to drive action.\n";
-
-      // Noun presence
-      const nounPattern = /(linen|fabric|world|skin|summer|craft|comfort|light|breeze|touch)/i;
-      feedback += nounPattern.test(headline) ? "• Clear noun anchor found.\n" : "• Include a concrete noun to ground the idea.\n";
-
-      // Tension or contrast
-      const contrastPattern = /(meets|between|against|versus|vs|from.*to)/i;
-      feedback += contrastPattern.test(headline) ? "• Has contrast/tension. Nice.\n" : "• Consider adding a contrast for intrigue.\n";
-
-      // Rhythm
-      const wordCount = headline.split(/\s+/).length;
-      if (wordCount <= 5) feedback += "• Short, punchy rhythm. Effective.\n";
-      else if (wordCount <= 10) feedback += "• Medium rhythm — could be refined for musicality.\n";
-      else feedback += "• Headline may be too long; tighten rhythm.\n";
-
-      // Emotional benefit
-      const emotionalPattern = /(comfort|ease|freedom|calm|confidence|clarity|freshness|lightness)/i;
-      feedback += emotionalPattern.test(headline) ? "• Emotional benefit present.\n" : "• Add an emotional payoff — what does it do for the person?\n";
-
-      result.style.display = "block";
-      result.textContent = feedback;
+      historyEl.innerHTML = history.map(h => {
+        const scoreLine = (typeof h.score === 'number' && showScores.checked) ? `<div style="margin-top:6px;color:var(--muted);font-size:12px">Score: ${h.score}</div>` : '';
+        return `<div class="hist-item"><strong>${escapeHtml(h.headline)}</strong>${scoreLine}<div style="margin-top:8px;font-size:13px;color:var(--muted)">${escapeHtml(h.output)}</div></div>`;
+      }).join("");
     }
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, (m)=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+    async function callAI(prompt, maxTokens=500){
+      // This function calls the OpenAI API. For security, you should use a server proxy.
+      // The page uses a direct fetch with an API key placeholder.
+      const body = {
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content:
+`You are an expert creative director and headline editor. When asked to ANALYZE, produce:
+- A short numeric score (0-100).
+- A 3-5 sentence analysis referencing sensory adjectives, verbs, nouns, contrast, rhythm, emotional payoff, clarity.
+- 3 concrete improvement suggestions (bullet list).
+When asked to REWRITE, produce 3 alternative headlines. Keep them concise and varied in tone.` },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: maxTokens
+      };
+
+      const resp = await fetch(OPENAI_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type":"application/json",
+          "Authorization": `Bearer ${OPENAI_KEY_PLACEHOLDER}`
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (!resp.ok) {
+        const text = await resp.text();
+        throw new Error(`AI error ${resp.status}: ${text}`);
+      }
+      const data = await resp.json();
+      // adapt to response shape
+      const text = data?.choices?.[0]?.message?.content || JSON.stringify(data);
+      return text.trim();
+    }
+
+    function scoreFromAnalysis(text){
+      // crude: try to parse a "Score: N" line; fallback null
+      const m = text.match(/score[:\s]*([0-9]{1,3})/i);
+      if (m) {
+        const n = Number(m[1]);
+        if (!isNaN(n)) return Math.max(0, Math.min(100, n));
+      }
+      return null;
+    }
+
+    // ---------- Actions ----------
+    analyzeBtn.addEventListener("click", async ()=>{
+      const headline = headlineInput.value.trim();
+      if (!headline) { setResult("Please enter a headline."); return; }
+      setResult("Analysing...");
+      try {
+        const prompt = `ANALYZE: "${headline}"\n\nReturn a short numeric score and specific feedback.`;
+        const out = await callAI(prompt, 400);
+        setResult(out);
+        const score = scoreFromAnalysis(out);
+        pushHistory({ type:"analysis", headline, output: out, score });
+      } catch(err){
+        setResult("Error: " + err.message + "\n(Reminder: replace YOUR_API_KEY with a valid key or use a server proxy.)");
+      }
+    });
+
+    rewriteBtn.addEventListener("click", async ()=>{
+      const headline = headlineInput.value.trim();
+      if (!headline) { setResult("Please enter a headline."); return; }
+      setResult("Rewriting...");
+      try {
+        const prompt = `REWRITE (3 SHORT VARIATIONS): "${headline}"\n\nMake each headline concise, vivid, and different in tone.`;
+        const out = await callAI(prompt, 300);
+        setResult(out);
+        pushHistory({ type:"rewrite", headline, output: out });
+      } catch(err){
+        setResult("Error: " + err.message + "\n(Reminder: replace YOUR_API_KEY with a valid key or use a server proxy.)");
+      }
+    });
+
+    clearBtn.addEventListener("click", ()=>{ headlineInput.value=""; setResult("Cleared."); });
+
+    copyBtn.addEventListener("click", async ()=>{
+      try{
+        await navigator.clipboard.writeText(resultEl.textContent);
+        copyBtn.textContent = "Copied!";
+        setTimeout(()=>copyBtn.textContent="Copy Result",1200);
+      }catch(e){
+        copyBtn.textContent = "Copy failed";
+        setTimeout(()=>copyBtn.textContent="Copy Result",1200);
+      }
+    });
+
+    // Background image file picker (live preview)
+    bgFile.addEventListener("change", (ev)=>{
+      const f = ev.target.files && ev.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = ()=> applyBackground(reader.result);
+      reader.readAsDataURL(f);
+    });
+
+    applyUrl.addEventListener("click", ()=>{
+      const url = bgUrl.value.trim();
+      if (!url) { alert("Paste a valid image URL first."); return; }
+      applyBackground(url);
+    });
+
+    useDefault.addEventListener("click", ()=>{
+      if (FALLBACK_BG) applyBackground(FALLBACK_BG);
+      else { removeBackground(); alert("No fallback image set. Paste a URL or upload a file."); }
+    });
+
+    removeBg.addEventListener("click", removeBackground);
+
+    function applyBackground(url){
+      document.body.style.backgroundImage = `url("${url}")`;
+      bgPreview.style.backgroundImage = `url("${url}")`;
+      bgPreview.textContent = "";
+      bgPreview.style.backgroundSize = "cover";
+      bgPreview.style.backgroundPosition = "center";
+    }
+    function removeBackground(){
+      document.body.style.backgroundImage = "";
+      bgPreview.style.backgroundImage = "none";
+      bgPreview.textContent = "Preview";
+    }
+
+    // export history
+    exportJson.addEventListener("click", ()=>{
+      const blob = new Blob([JSON.stringify(history, null, 2)], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "headline_history.json";
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    });
+
+    // Keep history local toggle persistence
+    storeLocal.addEventListener("change", ()=>{
+      if (!storeLocal.checked) localStorage.removeItem("headline_history");
+      else localStorage.setItem("headline_history", JSON.stringify(history));
+    });
+
+    showScores.addEventListener("change", renderHistory);
+
+    // initialize UI state
+    renderHistory();
+    if (FALLBACK_BG) { /* optional */ }
+
+    // keyboard shortcut: Ctrl/Cmd+Enter -> analyze
+    headlineInput.addEventListener("keydown", (e)=>{
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { analyzeBtn.click(); }
+    });
+
   </script>
 </body>
 </html>
